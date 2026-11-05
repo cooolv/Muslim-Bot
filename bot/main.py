@@ -12,6 +12,7 @@ from . import handlers as h
 from .assistant import Assistant
 from .config import get_settings
 from .db import DB
+from .health import start_health_server
 from .llm import LLM
 from .prayer import PrayerService
 
@@ -37,8 +38,11 @@ def build_app() -> Application:
 
     async def post_init(app: Application):
         await app.bot.set_my_commands([BotCommand(c, d) for c, d in COMMANDS])
+        app.bot_data["health"] = await start_health_server()  # فقط لو PORT موجود
 
     async def post_shutdown(app: Application):
+        if app.bot_data.get("health"):
+            app.bot_data["health"].close()
         await llm.close()
         await prayer.close()
 
