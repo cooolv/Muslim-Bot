@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import {
   countries,
-  generateAnswer,
+  clearLocalData,
   getActiveConversationId,
   loadConversations,
   loadSettings,
@@ -41,6 +41,7 @@ import {
   setActiveConversationId,
 } from "./core";
 import type { Conversation, KnowledgeDocument, Message, Page, PrayerName, Settings } from "./core";
+import { askAssistant, isChatConfigured } from "./chat";
 
 const suggestions = [
   { ar: "رشح لي تطبيقًا إسلاميًا مفيدًا", en: "Recommend a helpful Islamic app", icon: "✦" },
@@ -152,12 +153,7 @@ function App() {
   }, [toast]);
 
   const updateSettings = useCallback((patch: Partial<Settings>) => {
-    setSettings((current) => ({
-      ...current,
-      ...patch,
-      primary: { ...current.primary, ...patch.primary },
-      fallback: { ...current.fallback, ...patch.fallback },
-    }));
+    setSettings((current) => ({ ...current, ...patch }));
   }, []);
 
   const selectPage = useCallback((nextPage: Page) => {
@@ -215,7 +211,7 @@ function App() {
     const abortController = new AbortController();
     controllerRef.current = abortController;
     try {
-      const result = await generateAnswer(question, settings, knowledge, priorMessages, userName, abortController.signal);
+      const result = await askAssistant(question, priorMessages, settings.language, abortController.signal);
       const assistantMessage: Message = {
         id: newId(),
         role: "assistant",
@@ -244,7 +240,7 @@ function App() {
       if (controllerRef.current === abortController) controllerRef.current = null;
       setBusy(false);
     }
-  }, [active, activeId, busy, knowledge, messages, settings, text, updateActive, userName]);
+  }, [active, activeId, busy, messages, settings.language, text, updateActive]);
 
   const submit = useCallback(() => {
     const trimmed = input.trim();
@@ -277,49 +273,12 @@ function App() {
         <div className="page-icon"><Settings2 size={20} /></div>
         <div>
           <h1>{text("الإعدادات", "Settings")}</h1>
-          <p>{text("قم بتكوين مزود الذكاء الاصطناعي وتفضيلات الخصوصية.", "Configure the AI provider and privacy preferences.")}</p>
+          <p>{text("خصص لغة الواجهة والمظهر. لا تحتاج إلى مفتاح API.", "Choose your language and theme. No API key is needed.")}</p>
         </div>
       </div>
       <div className="settings-grid">
         <div className="settings-card">
-          <h3>{text("المزود الرئيسي", "Primary provider")}</h3>
-          <label>{text("الاسم", "Name")}
-            <input value={settings.primary.name} onChange={(event) => updateSettings({ primary: { ...settings.primary, name: event.target.value } })} />
-          </label>
-          <label>{text("عنوان API", "API URL")}
-            <input value={settings.primary.baseUrl} onChange={(event) => updateSettings({ primary: { ...settings.primary, baseUrl: event.target.value } })} />
-          </label>
-          <label>{text("مفتاح API", "API key")}
-            <input type="password" value={settings.primary.apiKey} onChange={(event) => updateSettings({ primary: { ...settings.primary, apiKey: event.target.value } })} />
-          </label>
-          <label>{text("النماذج", "Models")}
-            <input value={settings.primary.models} onChange={(event) => updateSettings({ primary: { ...settings.primary, models: event.target.value } })} />
-          </label>
-        </div>
-        <div className="settings-card">
-          <h3>{text("المزود الاحتياطي", "Fallback provider")}</h3>
-          <label>{text("الاسم", "Name")}
-            <input value={settings.fallback.name} onChange={(event) => updateSettings({ fallback: { ...settings.fallback, name: event.target.value } })} />
-          </label>
-          <label>{text("عنوان API", "API URL")}
-            <input value={settings.fallback.baseUrl} onChange={(event) => updateSettings({ fallback: { ...settings.fallback, baseUrl: event.target.value } })} />
-          </label>
-          <label>{text("مفتاح API", "API key")}
-            <input type="password" value={settings.fallback.apiKey} onChange={(event) => updateSettings({ fallback: { ...settings.fallback, apiKey: event.target.value } })} />
-          </label>
-          <label>{text("النماذج", "Models")}
-            <input value={settings.fallback.models} onChange={(event) => updateSettings({ fallback: { ...settings.fallback, models: event.target.value } })} />
-          </label>
-        </div>
-        <div className="settings-card">
-          <h3>{text("خيارات الحماية", "Protection options")}</h3>
-          <label className="toggle-row">
-            <span>{text("استخدام فحص الحماية", "Use guard model")}</span>
-            <input type="checkbox" checked={settings.useGuard} onChange={(event) => updateSettings({ useGuard: event.target.checked })} />
-          </label>
-          <label>{text("نماذج الحماية", "Guard models")}
-            <input value={settings.guardModels} onChange={(event) => updateSettings({ guardModels: event.target.value })} />
-          </label>
+          <h3>{text("تفضيلات العرض", "Display preferences")}</h3>
           <label>{text("لغة الواجهة", "Interface language")}
             <select value={settings.language} onChange={(event) => updateSettings({ language: event.target.value as Settings["language"] })}>
               <option value="ar">العربية</option>
@@ -332,17 +291,16 @@ function App() {
               <option value="light">Light</option>
             </select>
           </label>
-          <label>{text("حفظ المفاتيح", "Key storage")}
-            <select value={settings.keyStorage} onChange={(event) => updateSettings({ keyStorage: event.target.value as Settings["keyStorage"] })}>
-              <option value="session">SessionStorage</option>
-              <option value="local">LocalStorage</option>
-            </select>
-          </label>
         </div>
       </div>
       <div className="settings-actions">
         <button className="secondary-button" type="button" onClick={() => {
-          localStorage.clear();
+          clearLocalData();
+          const next = makeConversation("محادثة جديدة");
+          setConversations([next]);
+          setActiveId(next.id);
+          setSettings({ language: "ar", theme: "dark" });
+          setUserName("");
           setToast(text("تم حذف البيانات المحلية", "Local data cleared"));
         }}>
           {text("حذف كل البيانات المحلية", "Delete all local data")}
@@ -400,7 +358,7 @@ function App() {
           <div className="mobile-brand"><div className="mini-mark">م</div><span>{text("مساعد المسلم", "Muslim Assistant")}</span></div>
           <div className="topbar-title">{pageTitle}</div>
           <div className="topbar-actions">
-            <div className={`connection-pill ${settings.primary.apiKey ? "configured" : ""}`}><span className="status-dot" />{settings.primary.apiKey ? text("المزوّد جاهز", "Provider ready") : text("أضف مفتاح API", "Add API key")}</div>
+            <div className={`connection-pill ${isChatConfigured ? "configured" : ""}`}><span className="status-dot" />{isChatConfigured ? text("المساعد متاح", "Assistant available") : text("الخادم غير مُعدّ", "Server not configured")}</div>
             <button className="icon-button" aria-label={text("الإعدادات", "Settings")} onClick={() => selectPage("settings")}><Settings2 size={18} /></button>
           </div>
         </header>
@@ -452,7 +410,7 @@ function App() {
             </div>
             <div className="composer-wrap">
               {knowledge.length === 0 && !knowledgeError && (
-                <div className="corpus-note"><BookOpen size={14} />{text("ملف المعرفة فارغ — ستظل الإجابات متاحة عبر مزودك.", "Knowledge file is empty — your provider can still answer.")}</div>
+                <div className="corpus-note"><BookOpen size={14} />{text("قاعدة التطبيقات المحلية فارغة — يمكن للمساعد الإجابة عن الأسئلة العامة، لكنه لن ينسب معلومات تطبيقات إلى مصادر غير موجودة.", "The local app knowledge base is empty — general answers are available, but app details will not be attributed to missing sources.")}</div>
               )}
               {knowledgeError && <div className="inline-warning">{knowledgeError}</div>}
               <form className="composer" onSubmit={(event) => { event.preventDefault(); submit(); }}>
@@ -739,7 +697,7 @@ function InfoPage({ text, kind }: { isEnglish: boolean; text: (ar: string, en: s
         <div className="info-card about-card">
           <div className="about-logo">م</div>
           <h2>{text("مساعد تطبيقات المسلم", "Muslim Assistant")}</h2>
-          <p>{text("واجهة ويب ثابتة تساعد المستخدمين على اكتشاف التطبيقات الإسلامية النافعة ومراجعة مواقيت الصلاة وطرح الأسئلة عبر مزود ذكاء اصطناعي يختاره المستخدم.", "A static web app for discovering beneficial Islamic apps, checking prayer times, and asking questions via an AI provider chosen by the user.")}</p>
+          <p>{text("واجهة ويب تساعد المستخدمين على اكتشاف التطبيقات الإسلامية النافعة ومراجعة مواقيت الصلاة وطرح الأسئلة عبر مساعد مدعوم بـ Gemini.", "A web app for discovering beneficial Islamic apps, checking prayer times, and asking questions with a Gemini-powered assistant.")}</p>
           <div className="about-values">
             <div><ShieldCheck size={18} /><strong>{text("خصوصية محلية", "Local privacy")}</strong><span>{text("لا حسابات أو خادم رئيسي", "No accounts or central server")}</span></div>
             <div><Globe2 size={18} /><strong>{text("مفتوح للجميع", "Open access")}</strong><span>{text("يعمل على GitHub Pages", "Runs on GitHub Pages")}</span></div>
@@ -752,15 +710,15 @@ function InfoPage({ text, kind }: { isEnglish: boolean; text: (ar: string, en: s
       ) : (
         <div className="info-card privacy-content">
           <h2>{text("البيانات التي تبقى على جهازك", "Data that stays on your device")}</h2>
-          <p>{text("تُحفظ المحادثات والإعدادات غير الحساسة في LocalStorage، بينما تُخزن مفاتيح API في SessionStorage افتراضيًا ويمكن اختيار الحفظ الدائم محليًا.", "Chats and non-sensitive settings are stored in LocalStorage, while API keys default to SessionStorage and can be made persistent with an explicit choice.")}</p>
+          <p>{text("تُحفظ المحادثات وتفضيلات العرض على جهازك. يمر نص السؤال وسياق المحادثة المحدود عبر خادم المساعد إلى Google Gemini؛ لا يُرسل مفتاح API إلى المتصفح.", "Chats and display preferences stay on your device. Your question and limited conversation context are sent through the assistant server to Google Gemini; the API key is never sent to your browser.")}</p>
           <h2>{text("البيانات التي تغادر جهازك", "Data sent to other services")}</h2>
           <ul>
-            <li>{text("رسائل المحادثة ومفاتيح API تُرسل مباشرة إلى مزود الذكاء الاصطناعي المختار.", "Chat messages and API keys are sent directly to the selected AI provider.")}</li>
+            <li>{text("يُرسل نص المحادثة إلى Google Gemini لمعالجة الرد. لا تسأل عن معلومات شخصية أو مالية حساسة.", "Conversation text is sent to Google Gemini to generate a response. Do not share sensitive personal or financial information.")}</li>
             <li>{text("طلب مواقيت الصلاة أو البحث عن المدن يرسل البيانات إلى Aladhan وOpenStreetMap عند استخدام تلك الخصائص.", "Prayer-time and city-lookup requests go to Aladhan and OpenStreetMap when you use those features.")}</li>
           </ul>
           <div className="disclaimer-card">
             <strong>{text("حذف بياناتك", "Delete your data")}</strong>
-            <p>{text("استخدم «حذف كل البيانات المحلية» في الإعدادات لإزالة المحادثات والإعدادات والمفاتيح من هذا المتصفح.", "Use “Delete all local data” in Settings to remove chats, settings, and keys from this browser.")}</p>
+            <p>{text("استخدم «حذف كل البيانات المحلية» في الإعدادات لإزالة المحادثات والإعدادات المحفوظة من هذا المتصفح.", "Use “Delete all local data” in Settings to remove saved chats and preferences from this browser.")}</p>
           </div>
         </div>
       )}

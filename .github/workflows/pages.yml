@@ -32,12 +32,16 @@ jobs:
       - run: npm run typecheck
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q
-      - run: npm run build
+      - name: Build static site
+        run: npm run build
+        env:
+          VITE_CHAT_API_URL: ${{ vars.VITE_CHAT_API_URL }}
       - name: Verify static build
         run: |
           test -s dist/index.html
           test -s dist/knowledge.json
           ! grep -R -E 'sk-[A-Za-z0-9]{20,}|gsk_[A-Za-z0-9]{20,}' dist
+          ! grep -R -E 'AIza[A-Za-z0-9_-]{30,}|x-goog-api-key' dist
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
