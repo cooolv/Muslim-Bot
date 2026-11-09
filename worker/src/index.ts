@@ -2,6 +2,8 @@ import knowledgeData from "../../public/knowledge.json";
 import {
   checkInput,
   checkOutput,
+  normalizeArabic,
+  queryTokens,
   searchKnowledge,
   systemPrompt,
 } from "../../src/core";
@@ -138,7 +140,18 @@ async function generate(
   const searchQuery = latest.length < 24
     ? `${request.messages.slice(0, -1).filter((message) => message.role === "user").at(-1)?.content ?? ""} ${latest}`
     : latest;
-  const records = searchKnowledge(searchQuery, knowledgeRecords, 4).filter((record) => record.score >= 1.2);
+  const queryTerms = queryTokens(searchQuery);
+  const normalizedQuery = normalizeArabic(searchQuery).trim();
+  const records = searchKnowledge(searchQuery, knowledgeRecords, knowledgeRecords.length)
+    .filter((record) => {
+      if (record.score < 1.2) return false;
+      if (record.matchedTerms >= 2) return true;
+      if (queryTerms.length !== 1 || record.matchedTerms !== 1) return false;
+      return [record.title, record.appName].some(
+        (name) => name && normalizeArabic(name).trim() === normalizedQuery,
+      );
+    })
+    .slice(0, 4);
   const canary = `MA-${crypto.randomUUID().slice(0, 12)}`;
   const system = `${systemPrompt("", canary, request.language)}
 The user may ask general questions or questions about a specific application.

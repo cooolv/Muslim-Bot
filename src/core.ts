@@ -97,7 +97,7 @@ export function searchKnowledge(
   query: string,
   documents: KnowledgeDocument[],
   limit = 5,
-): Array<KnowledgeDocument & { score: number }> {
+): Array<KnowledgeDocument & { score: number; matchedTerms: number }> {
   const tokens = queryTokens(query);
   if (!tokens.length) return [];
   const docs = documents.map((document) => {
@@ -114,6 +114,7 @@ export function searchKnowledge(
     ].filter(Boolean).join(" ");
     const docTokens = queryTokens(text, 500);
     const unique = new Set(docTokens);
+    const matchedTerms = tokens.reduce((count, token) => count + Number(unique.has(token)), 0);
     const overlap = tokens.reduce((score, token) => {
       if (!unique.has(token)) return score;
       const count = docTokens.filter((item) => item === token).length;
@@ -121,7 +122,7 @@ export function searchKnowledge(
     }, 0);
     const phrase = normalizeArabic(text).includes(normalizeArabic(query).trim()) ? 2 : 0;
     const trust = Math.max(0, Math.min(document.trust ?? 2, 3));
-    return { ...document, score: (overlap + phrase) * (1 + 0.1 * (trust - 1)) };
+    return { ...document, score: (overlap + phrase) * (1 + 0.1 * (trust - 1)), matchedTerms };
   });
   return docs.filter((doc) => doc.score > 0).sort((a, b) => b.score - a.score).slice(0, limit);
 }

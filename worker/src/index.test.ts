@@ -53,7 +53,7 @@ describe("Cloudflare chat worker", () => {
   it.each([
     ["Arabic", "ar", "كيف أستفيد من الأذكار؟"],
     ["English", "en", "How do I build a reading habit?"],
-  ] as const)("answers general %s questions without knowledge records", async (_label, language, question) => {
+  ] as const)("answers general %s questions without a strong knowledge match", async (_label, language, question) => {
     const fetchMock = mockGeminiFetch("A general response.");
     vi.stubGlobal("fetch", fetchMock);
     const response = await createWorker().fetch(makeRequest({
@@ -69,6 +69,25 @@ describe("Cloudflare chat worker", () => {
     expect(body.text).toBe("A general response.");
     expect(body.sources).toEqual([]);
     expect(upstream.systemInstruction.parts[0].text).toContain("No matching records");
+  });
+
+  it("finds a single-word app query only when it exactly matches the app name", async () => {
+    const fetchMock = mockGeminiFetch("The app has verified details.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker([{
+      title: "أذكار",
+      body: "An app for morning and evening adhkar.",
+      appName: "أذكار",
+      sources: [{ url: "https://example.org/adhkar" }],
+      trust: 3,
+    }]).fetch(makeRequest({
+      language: "ar",
+      messages: [{ role: "user", content: "أذكار" }],
+    }, { origin: "https://site.example" }), makeEnv());
+    const body = await response.json() as { sources: string[] };
+
+    expect(response.status).toBe(200);
+    expect(body.sources).toEqual(["https://example.org/adhkar"]);
   });
 
   it("retrieves structured application facts and returns trusted source URLs", async () => {
