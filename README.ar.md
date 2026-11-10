@@ -120,37 +120,24 @@ python -m pytest -q
 
 ## النشر
 
-يُنشر الموقع وخدمة المحادثة كلٌ على حدة.
+الموقع وخدمة المحادثة هدفا نشر منفصلان. بعد إضافة بيانات اعتماد Cloudflare إلى أسرار GitHub مرة واحدة، يؤدي الدفع إلى `main` بعد نجاح البناء والاختبارات إلى نشرهما تلقائيًا. لا تنشر طلبات الدمج أيًا منهما.
 
 ### الواجهة: GitHub Pages
 
 1. من إعدادات المستودع، انتقل إلى **Settings → Secrets and variables → Actions → Variables**، ثم أضف متغير المستودع `VITE_CHAT_API_URL` واجعل قيمته عنوان Worker المنشور.
 2. من **Settings → Pages**، اختر **GitHub Actions** مصدرًا للبناء والنشر.
-3. ادفع التغييرات إلى `main`. يشغّل سير العمل `.github/workflows/pages.yml` الاختبارات والفحوص ويبني الموقع الثابت وينشره إلى GitHub Pages. تُشغّل طلبات الدمج الفحوص والبناء دون نشر الموقع.
+3. ادفع التغيير أو ادمجه في `main`. يشغّل سير العمل `.github/workflows/pages.yml` الاختبارات والفحوص ويبني الموقع الثابت وينشره إلى GitHub Pages. تشغّل طلبات الدمج الفحوص والبناء فقط دون نشر.
 
 ### الخادم: Cloudflare Workers
 
-1. سجّل دخول Wrangler إلى حساب Cloudflare:
+أضف بيانات الاعتماد التالية مرة واحدة من **إعدادات مستودع GitHub → Secrets and variables → Actions → New repository secret**:
 
-   ```bash
-   npx wrangler login
-   ```
+- `CLOUDFLARE_API_TOKEN`: أنشئ [رمز API في Cloudflare](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) بصلاحية تعديل Workers ومقيّدًا بالحساب المطلوب، واحفظه كسر.
+- `CLOUDFLARE_ACCOUNT_ID`: [معرّف حساب Cloudflare](https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/) الذي يحتوي Worker. احفظه كسر في المستودع أيضًا.
 
-2. احفظ مفتاح Gemini كسر لـ Worker:
+يستخدم سير العمل هذين السرّين لتشغيل `npm run worker:deploy` بعد نجاح البناء عند الدفع إلى `main`. ولا يتيح أسرار النشر لوظائف طلبات الدمج. احتفظ بسر Worker الحالي `GEMINI_API_KEY` مضبوطًا في Cloudflare؛ رمز النشر لا يحل محله.
 
-   ```bash
-   npx wrangler secret put GEMINI_API_KEY
-   ```
-
-   أدخل المفتاح في مطالبة Wrangler؛ لا تضعه في `wrangler.jsonc`.
-
-3. انشر Worker:
-
-   ```bash
-   npm run worker:deploy
-   ```
-
-4. أضف عنوان Worker الناتج إلى متغير GitHub Actions `VITE_CHAT_API_URL`، وتأكد من وجود أصل الواجهة ضمن `ALLOWED_ORIGINS`. أعد نشر Worker بعد تغيير إعداداته.
+اضبط متغير GitHub Actions `VITE_CHAT_API_URL` على عنوان Worker، وتأكد من وجود أصل الواجهة ضمن `ALLOWED_ORIGINS`. بعد الإعداد لمرة واحدة، يؤدي دمج تغيير معرفة معتمد في `main` إلى نشر Worker تلقائيًا؛ لا حاجة إلى تشغيل أمر Wrangler يدويًا لكل تغيير. يظل `npm run worker:deploy` متاحًا للنشر اليدوي عند الحاجة.
 
 قد تتغير الخطط والحصص والحدود لدى Cloudflare وGemini. راجع [حدود Cloudflare Workers](https://developers.cloudflare.com/workers/platform/limits/) و[حدود Gemini API](https://ai.google.dev/gemini-api/docs/rate-limits) وإعدادات حسابك قبل النشر؛ لا يضمن هذا المشروع استخدامًا مجانيًا أو غير محدود.
 

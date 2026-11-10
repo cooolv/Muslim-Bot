@@ -70,7 +70,7 @@ Commit-message prefixes are a recommendation, not an automated repository requir
 
 Use the [Knowledge suggestion issue form](https://github.com/cooolv/Muslim-Bot/issues/new?template=knowledge_suggestion.yml) to propose source-backed facts. Issues are public; do not include personal or confidential information.
 
-Submitting a suggestion does not add it to the assistant's answers. A maintainer reviews the sources and decides whether to add a record to `public/knowledge.json`. Only after the approved change is committed and the Worker is redeployed can the record be retrieved by the assistant. This updates the RAG knowledge base; it does not train or fine-tune Gemini. The issue form does not implement a separate admin role or enforce branch review rules; repository permissions control who can edit and merge changes.
+Submitting a suggestion does not add it to the assistant's answers. A maintainer reviews the sources and decides whether to add a record to `public/knowledge.json`. After the approved change is merged into `main`, GitHub Actions automatically deploys the site and Worker, provided the required Cloudflare repository secrets have been configured. This updates the RAG knowledge base; it does not train or fine-tune Gemini. The issue form does not implement a separate admin role or enforce branch review rules; repository permissions control who can edit and merge changes.
 
 ## Suggested good first issues
 

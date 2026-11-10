@@ -120,37 +120,24 @@ Never put `GEMINI_API_KEY` or another credential in `VITE_*`, frontend code, or 
 
 ## Deployment
 
-The site and chat backend deploy separately.
+The site and chat backend are separate deployment targets. After one-time Cloudflare credentials are saved as GitHub repository secrets, a successful push to `main` deploys both automatically after the build and tests pass. Pull requests do not deploy either target.
 
 ### Frontend: GitHub Pages
 
 1. In the repository's **Settings → Secrets and variables → Actions → Variables**, set the repository variable `VITE_CHAT_API_URL` to the deployed Worker base URL.
 2. In **Settings → Pages**, select **GitHub Actions** as the build and deployment source.
-3. Push to `main`. The workflow at `.github/workflows/pages.yml` runs tests and checks, builds the static site, and deploys it to GitHub Pages. Pull requests run the build and checks but do not deploy the site.
+3. Push or merge to `main`. The workflow at `.github/workflows/pages.yml` runs tests and checks, builds the static site, and deploys it to GitHub Pages. Pull requests run the build and checks but do not deploy.
 
 ### Backend: Cloudflare Workers
 
-1. Authenticate Wrangler with your Cloudflare account:
+Configure these credentials once in **GitHub repository → Settings → Secrets and variables → Actions → New repository secret**:
 
-   ```bash
-   npx wrangler login
-   ```
+- `CLOUDFLARE_API_TOKEN`: Create a [Cloudflare API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) scoped to the account and with permission to edit Workers. Treat it as a secret.
+- `CLOUDFLARE_ACCOUNT_ID`: The [Cloudflare account ID](https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/) for the account containing this Worker. Store it as a repository secret as well.
 
-2. Set the Gemini credential as a Worker secret:
+The workflow uses these credentials to run `npm run worker:deploy` after the build job succeeds on pushes to `main`. It does not expose them to pull-request jobs. Keep the existing `GEMINI_API_KEY` Worker secret configured in Cloudflare; it is not replaced by the deployment token.
 
-   ```bash
-   npx wrangler secret put GEMINI_API_KEY
-   ```
-
-   Enter the credential in Wrangler's prompt; do not put it in `wrangler.jsonc`.
-
-3. Deploy the Worker:
-
-   ```bash
-   npm run worker:deploy
-   ```
-
-4. Set the GitHub Actions variable `VITE_CHAT_API_URL` to the resulting Worker URL and ensure the frontend origin is included in `ALLOWED_ORIGINS`. Redeploy the Worker after changing its configuration.
+Set the GitHub Actions variable `VITE_CHAT_API_URL` to the Worker URL and ensure the frontend origin is included in `ALLOWED_ORIGINS`. After the one-time setup, an approved knowledge change merged into `main` is deployed automatically with the Worker; no per-change Wrangler command is needed. A manual `npm run worker:deploy` remains available for intentional manual deployments.
 
 Cloudflare and Gemini plans, quotas, and limits can change. Check the [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/), [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits), and your account settings before deployment; this README does not promise free or unlimited usage.
 
