@@ -742,11 +742,29 @@ function MessageBubble({
   showRegenerate: boolean;
 }) {
   const isUser = message.role === "user";
+  const sources = (message.sources ?? []).filter((source) => {
+    try {
+      return new URL(source).protocol === "https:";
+    } catch {
+      return false;
+    }
+  });
   return (
     <div className={`message-row ${isUser ? "user-row" : "assistant-row"}`}>
       {!isUser && <div className="assistant-avatar">م</div>}
       <div className={`message-bubble ${isUser ? "user-bubble" : "assistant-bubble"}`}>
         {message.error ? <div className="error-box">{message.content}</div> : <ReactMarkdown>{message.content}</ReactMarkdown>}
+        {!isUser && !message.error && sources.length > 0 && (
+          <div className="source-list" aria-label={text("مصادر الإجابة", "Answer sources")}>
+            <span>{text("المصادر", "Sources")}</span>
+            {sources.map((source, index) => (
+              <a key={`${source}-${index}`} href={source} target="_blank" rel="noreferrer">
+                {text(`المصدر ${index + 1}`, `Source ${index + 1}`)}
+                <ExternalLink size={12} />
+              </a>
+            ))}
+          </div>
+        )}
         {!isUser && (
           <div className="message-actions">
             <button onClick={onCopy} aria-label={text("نسخ", "Copy")}><Copy size={14} /></button>
