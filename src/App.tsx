@@ -30,6 +30,7 @@ import {
 import {
   countries,
   clearLocalData,
+  DEFAULT_SETTINGS,
   getActiveConversationId,
   loadConversations,
   loadSettings,
@@ -112,7 +113,8 @@ function App() {
     document.documentElement.lang = settings.language;
     document.documentElement.dir = isEnglish ? "ltr" : "rtl";
     document.documentElement.dataset.theme = settings.theme;
-  }, [settings.language, settings.theme, isEnglish]);
+    document.documentElement.dataset.accent = settings.accentColor;
+  }, [settings.language, settings.theme, settings.accentColor, isEnglish]);
 
   useEffect(() => {
     saveSettings(settings);
@@ -279,27 +281,73 @@ function App() {
       <div className="settings-grid">
         <div className="settings-card">
           <h3>{text("تفضيلات العرض", "Display preferences")}</h3>
-          <label>{text("لغة الواجهة", "Interface language")}
+          <label className="field-group">{text("لغة الواجهة", "Interface language")}
             <select value={settings.language} onChange={(event) => updateSettings({ language: event.target.value as Settings["language"] })}>
               <option value="ar">العربية</option>
               <option value="en">English</option>
             </select>
           </label>
-          <label>{text("المظهر", "Theme")}
+          <label className="field-group">{text("المظهر", "Theme")}
             <select value={settings.theme} onChange={(event) => updateSettings({ theme: event.target.value as Settings["theme"] })}>
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
+              <option value="dark">{text("داكن", "Dark")}</option>
+              <option value="light">{text("فاتح", "Light")}</option>
             </select>
+          </label>
+          <label className="field-group">{text("حجم نص الرسائل", "Message text size")}
+            <select value={settings.messageSize} onChange={(event) => updateSettings({ messageSize: event.target.value as Settings["messageSize"] })}>
+              <option value="small">{text("صغير", "Small")}</option>
+              <option value="medium">{text("متوسط (افتراضي)", "Medium (default)")}</option>
+              <option value="large">{text("كبير", "Large")}</option>
+            </select>
+          </label>
+          <fieldset className="accent-picker">
+            <legend>{text("لون التمييز", "Accent color")}</legend>
+            <div className="accent-options">
+              {([
+                ["green", "أخضر", "Green"],
+                ["blue", "أزرق", "Blue"],
+                ["violet", "بنفسجي", "Violet"],
+                ["amber", "كهرماني", "Amber"],
+              ] as const).map(([color, arName, enName]) => (
+                <button
+                  key={color}
+                  type="button"
+                  className={`accent-option ${settings.accentColor === color ? "selected" : ""}`}
+                  aria-pressed={settings.accentColor === color}
+                  onClick={() => updateSettings({ accentColor: color })}
+                >
+                  <span className={`accent-swatch accent-${color}`} />
+                  {text(arName, enName)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <label className="settings-toggle">
+            <span>
+              <strong>{text("تمييز رد المساعد بلون مختلف", "Use a different color for assistant replies")}</strong>
+              <small>{text("يساعد على التفريق بين ردود المساعد ورسائلك.", "Makes assistant replies easier to distinguish from your messages.")}</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={settings.distinguishMessages}
+              onChange={(event) => updateSettings({ distinguishMessages: event.target.checked })}
+            />
           </label>
         </div>
       </div>
       <div className="settings-actions">
         <button className="secondary-button" type="button" onClick={() => {
+          setSettings(DEFAULT_SETTINGS);
+          setToast(text("تمت استعادة تفضيلات العرض الافتراضية", "Default display preferences restored"));
+        }}>
+          {text("استعادة الإعدادات الافتراضية", "Restore default preferences")}
+        </button>
+        <button className="secondary-button" type="button" onClick={() => {
           clearLocalData();
           const next = makeConversation("محادثة جديدة");
           setConversations([next]);
           setActiveId(next.id);
-          setSettings({ language: "ar", theme: "dark" });
+          setSettings(DEFAULT_SETTINGS);
           setUserName("");
           setToast(text("تم حذف البيانات المحلية", "Local data cleared"));
         }}>
@@ -310,7 +358,7 @@ function App() {
   );
 
   return (
-    <div className={`app-shell ${menuOpen ? "menu-open" : ""}`}>
+    <div className={`app-shell ${menuOpen ? "menu-open" : ""}`} data-message-size={settings.messageSize} data-distinguish-messages={settings.distinguishMessages}>
       {menuOpen && <button aria-label={text("إغلاق القائمة", "Close menu")} className="mobile-backdrop" onClick={() => setMenuOpen(false)} />}
       <aside className="sidebar">
         <div className="brand-row">

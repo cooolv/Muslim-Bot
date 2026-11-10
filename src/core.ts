@@ -1,5 +1,7 @@
 export type Language = "ar" | "en";
 export type Theme = "light" | "dark";
+export type MessageSize = "small" | "medium" | "large";
+export type AccentColor = "green" | "blue" | "violet" | "amber";
 export type Page = "chat" | "prayer" | "settings" | "about" | "privacy";
 export type Role = "user" | "assistant";
 
@@ -38,6 +40,9 @@ export interface KnowledgeDocument {
 export interface Settings {
   language: Language;
   theme: Theme;
+  messageSize: MessageSize;
+  accentColor: AccentColor;
+  distinguishMessages: boolean;
 }
 
 const normalizeMap: Record<string, string> = {
@@ -180,9 +185,12 @@ Be respectful, concise, and do not assume the user's gender.
 Preferred user name, if any: ${name || "none"}.
 `;
 
-const defaults: Settings = {
+export const DEFAULT_SETTINGS: Settings = {
   language: "ar",
   theme: "dark",
+  messageSize: "medium",
+  accentColor: "green",
+  distinguishMessages: true,
 };
 
 const SETTINGS_KEY = "muslim-assistant-settings-v1";
@@ -209,8 +217,17 @@ export function loadSettings(): Settings {
     storage.removeItem("muslim-assistant-key-fallback");
   }
   return {
-    language: saved.language === "en" ? "en" : defaults.language,
-    theme: saved.theme === "light" ? "light" : defaults.theme,
+    language: saved.language === "en" ? "en" : DEFAULT_SETTINGS.language,
+    theme: saved.theme === "light" ? "light" : DEFAULT_SETTINGS.theme,
+    messageSize: saved.messageSize === "small" || saved.messageSize === "large"
+      ? saved.messageSize
+      : DEFAULT_SETTINGS.messageSize,
+    accentColor: saved.accentColor === "blue" || saved.accentColor === "violet" || saved.accentColor === "amber"
+      ? saved.accentColor
+      : DEFAULT_SETTINGS.accentColor,
+    distinguishMessages: typeof saved.distinguishMessages === "boolean"
+      ? saved.distinguishMessages
+      : DEFAULT_SETTINGS.distinguishMessages,
   };
 }
 

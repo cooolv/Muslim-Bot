@@ -45,6 +45,13 @@
   --shadow: 0 18px 60px rgba(34, 57, 42, .08);
 }
 
+:root[data-accent="blue"] { --green: #83b9e8; --green-dark: #19364b; --green-bright: #a4d2f3; }
+:root[data-theme="light"][data-accent="blue"] { --green: #2874a8; --green-dark: #e4f1fa; --green-bright: #1d5e8a; }
+:root[data-accent="violet"] { --green: #b8a0e8; --green-dark: #34284c; --green-bright: #d0bdf2; }
+:root[data-theme="light"][data-accent="violet"] { --green: #7049a4; --green-dark: #f0eafa; --green-bright: #593786; }
+:root[data-accent="amber"] { --green: #e2b96f; --green-dark: #483820; --green-bright: #f0d091; }
+:root[data-theme="light"][data-accent="amber"] { --green: #95620e; --green-dark: #f8efdc; --green-bright: #754a08; }
+
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); color: var(--text); transition: background .2s ease, color .2s ease; }
 button, input, textarea, select { font: inherit; }
@@ -135,7 +142,26 @@ a:hover { text-decoration: underline; }
 .message-list { width: min(800px, calc(100% - 40px)); margin: 0 auto; padding: 38px 0 25px; }
 .message-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 29px; animation: appear .25s ease both; }
 .user-row { flex-direction: row; }
-.assistant-avatar { display: grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; margin-top: 3px; color: #c9ead5; border: 1px solid rgba(131,201,161,.2); border-radius: 10px; background: #1e4532; font-size: 13px; }
+.assistant-avatar { display: grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; margin-top: 3px; color: var(--green-bright); border: 1px solid var(--border-strong); border-radius: 10px; background: var(--green-dark); font-size: 13px; }
+.message-bubble { max-width: min(620px, 90%); padding: 10px 14px; color: var(--text); border: 1px solid var(--border); border-radius: 13px; background: var(--card); font-size: 14px; line-height: 1.9; overflow-wrap: anywhere; }
+.message-bubble p { margin: 0 0 10px; }
+.message-bubble p:last-child { margin-bottom: 0; }
+.message-bubble h1, .message-bubble h2, .message-bubble h3 { margin: 15px 0 7px; font-size: 1.1em; }
+.message-bubble ul, .message-bubble ol { padding-inline-start: 22px; }
+.message-bubble li { padding-inline-start: 3px; margin: 3px 0; }
+.message-bubble blockquote { margin: 10px 0; padding: 8px 14px; color: var(--muted); border-inline-start: 2px solid var(--green); background: var(--card-soft); }
+.message-bubble a { display: inline-flex; align-items: center; gap: 4px; }
+.message-bubble code { padding: 2px 5px; border-radius: 4px; background: var(--card-soft); font-family: monospace; }
+.message-bubble pre { overflow: auto; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--field); direction: ltr; text-align: left; }
+.user-bubble { border-radius: 4px 13px 13px 13px; }
+.assistant-bubble { border-radius: 13px 4px 13px 13px; }
+.app-shell[data-distinguish-messages="true"] .assistant-bubble { border-color: color-mix(in srgb, var(--green) 28%, var(--border)); background: color-mix(in srgb, var(--green-dark) 38%, var(--card)); }
+.app-shell[data-message-size="small"] .message-bubble { font-size: 12px; }
+.app-shell[data-message-size="medium"] .message-bubble { font-size: 14px; }
+.app-shell[data-message-size="large"] .message-bubble { font-size: 17px; }
+.app-shell[data-message-size="small"] .message-bubble h1,
+.app-shell[data-message-size="small"] .message-bubble h2,
+.app-shell[data-message-size="small"] .message-bubble h3 { font-size: 1.1em; }
 .message-content-wrap { min-width: 0; flex: 1; }
 .user-row .message-content-wrap { display: flex; flex-direction: column; align-items: flex-start; }
 .message-label { margin-bottom: 7px; color: var(--subtle); font-size: 10px; font-weight: 600; }
@@ -173,6 +199,25 @@ a:hover { text-decoration: underline; }
 .settings-layout, .prayer-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 19px; max-width: 1040px; margin: 0 auto; align-items: start; }
 .settings-main { display: flex; flex-direction: column; gap: 15px; }
 .settings-card, .prayer-main-card, .info-card { padding: 22px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: 0 8px 25px rgba(0,0,0,.035); }
+.settings-grid { max-width: 760px; margin: 0 auto 18px; }
+.settings-card h3 { margin: 0 0 18px; color: var(--text); font-size: 14px; font-weight: 600; }
+.settings-card .field-group:last-of-type { margin-bottom: 18px; }
+.accent-picker { min-width: 0; padding: 0; margin: 0 0 18px; border: 0; }
+.accent-picker legend { padding: 0; margin-bottom: 8px; color: var(--muted); font-size: 11px; font-weight: 500; }
+.accent-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.accent-option { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 10px; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; background: var(--field); font-size: 11px; }
+.accent-option:hover, .accent-option.selected { color: var(--text); border-color: var(--green); }
+.accent-option.selected { background: var(--green-dark); }
+.accent-swatch { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--border-strong); }
+.accent-green { background: #3b9862; }
+.accent-blue { background: #438fc3; }
+.accent-violet { background: #8864bf; }
+.accent-amber { background: #bd841e; }
+.settings-toggle { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 15px; border-top: 1px solid var(--border); cursor: pointer; }
+.settings-toggle > span { display: flex; flex-direction: column; gap: 4px; }
+.settings-toggle strong { color: var(--text); font-size: 12px; font-weight: 500; }
+.settings-toggle small { color: var(--subtle); font-size: 10px; line-height: 1.6; }
+.settings-toggle input { width: 17px; height: 17px; flex: 0 0 auto; accent-color: var(--green); }
 .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 19px; }
 .card-heading h2, .security-card h3, .provider-list-card h3, .prayer-tip-card h3 { margin: 0; color: var(--text); font-size: 14px; font-weight: 600; }
 .card-heading p { max-width: 550px; margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }

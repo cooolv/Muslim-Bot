@@ -1,5 +1,53 @@
-import { describe, expect, it } from "vitest";
-import { checkInput, normalizeArabic, nextPrayer, queryTokens, searchKnowledge } from "./core";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  checkInput,
+  DEFAULT_SETTINGS,
+  loadSettings,
+  normalizeArabic,
+  nextPrayer,
+  queryTokens,
+  saveSettings,
+  searchKnowledge,
+} from "./core";
+
+describe("display preferences", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  it("uses accessible display defaults when no preferences are saved", () => {
+    expect(loadSettings()).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it("loads and saves supported preferences while falling back for invalid values", () => {
+    localStorage.setItem("muslim-assistant-settings-v1", JSON.stringify({
+      language: "en",
+      theme: "light",
+      messageSize: "large",
+      accentColor: "violet",
+      distinguishMessages: false,
+    }));
+
+    expect(loadSettings()).toEqual({
+      language: "en",
+      theme: "light",
+      messageSize: "large",
+      accentColor: "violet",
+      distinguishMessages: false,
+    });
+
+    saveSettings({ ...DEFAULT_SETTINGS, messageSize: "small", accentColor: "blue" });
+    expect(loadSettings()).toEqual({ ...DEFAULT_SETTINGS, messageSize: "small", accentColor: "blue" });
+
+    localStorage.setItem("muslim-assistant-settings-v1", JSON.stringify({
+      messageSize: "huge",
+      accentColor: "chartreuse",
+      distinguishMessages: "yes",
+    }));
+    expect(loadSettings()).toEqual(DEFAULT_SETTINGS);
+  });
+});
 
 describe("Arabic search", () => {
   it("normalizes Arabic letters, diacritics, and Arabic digits", () => {
