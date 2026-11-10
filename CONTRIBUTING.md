@@ -66,9 +66,15 @@ Commit-message prefixes are a recommendation, not an automated repository requir
 - Update relevant documentation and include screenshots only when you have genuine screenshots of the changed UI.
 - Do not commit secrets, generated build output, or unrelated formatting changes.
 
+## Suggesting knowledge
+
+Use the [Knowledge suggestion issue form](https://github.com/cooolv/Muslim-Bot/issues/new?template=knowledge_suggestion.yml) to propose source-backed facts. Issues are public; do not include personal or confidential information.
+
+Submitting a suggestion does not add it to the assistant's answers. A maintainer reviews the sources and decides whether to add a record to `public/knowledge.json`. Only after the approved change is committed and the Worker is redeployed can the record be retrieved by the assistant. This updates the RAG knowledge base; it does not train or fine-tune Gemini. The issue form does not implement a separate admin role or enforce branch review rules; repository permissions control who can edit and merge changes.
+
 ## Suggested good first issues
 
-- Add a well-sourced record to `public/knowledge.json` and a focused test for its retrieval.
+- Suggest a well-sourced knowledge record using the issue form.
 - Add test cases for Arabic normalization, search terms, or follow-up queries.
 - Improve keyboard navigation or accessible labels in the existing React interface.
 - Clarify a setup or privacy detail in the English and Arabic READMEs.

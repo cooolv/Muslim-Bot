@@ -1,0 +1,41 @@
+name: Knowledge suggestion
+description: Suggest source-backed information for the assistant's public knowledge base.
+title: "[Knowledge]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggestions are public and are not added to the assistant automatically. A maintainer will review the evidence and decide whether to add the information. Do not include personal, private, or confidential information.
+  - type: input
+    id: record_title
+    attributes:
+      label: Suggested title
+      description: A short, clear title for this knowledge record.
+      placeholder: Example app or feature name
+    validations:
+      required: true
+  - type: textarea
+    id: suggested_information
+    attributes:
+      label: Suggested information
+      description: State the facts you propose adding. Separate confirmed facts from anything uncertain.
+      placeholder: |
+        Describe the information and relevant context.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Provide URLs and identify the source for each factual claim.
+      placeholder: |
+        - Source name: https://example.org/page
+    validations:
+      required: true
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Accuracy and sharing
+      options:
+        - label: I have checked that the sources support the claims and that the proposed text may be shared publicly.
+          required: true

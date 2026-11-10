@@ -31,6 +31,7 @@ Muslims looking for useful apps often have to search across scattered sources. M
 - **Local conversation history:** Conversations, language/theme preferences, selected city, and the reminder toggle are stored in the browser.
 - **Layered request protections:** The Worker checks origins and request shape and size, applies Cloudflare rate limiting, checks input and generated output, and keeps the Gemini key on the server.
 - **Source links:** Answers can include links to the knowledge records used for retrieval.
+- **Maintainer-reviewed knowledge suggestions:** Anyone can propose source-backed information through a public GitHub issue. Suggestions are not used in answers unless a maintainer reviews and adds them to the published knowledge file.
 
 Scheduled prayer reminders are **not implemented**. The current reminder control only saves a local preference; it does not schedule or deliver notifications.
 
@@ -232,9 +233,13 @@ To report a suspected vulnerability, follow [SECURITY.md](SECURITY.md). Avoid po
 
 Do not submit sensitive personal, health, financial, or other confidential information.
 
-## Extending the knowledge base
+## Knowledge suggestions and the knowledge base
 
-Add a record to `public/knowledge.json`. Keep descriptions factual and include sources that readers can open:
+To propose information, open a [Knowledge suggestion](https://github.com/cooolv/Muslim-Bot/issues/new?template=knowledge_suggestion.yml) issue with the factual claim and its sources. Suggestions are public, remain pending until reviewed, and are not sent to Gemini or included in retrieval just because an issue was opened. Do not include personal or confidential information.
+
+Only a maintainer decides whether a suggestion is accepted. If accepted, the maintainer manually adds a record to `public/knowledge.json`, checks its facts and sources, and publishes the change. Rejected suggestions are not added. The issue form does not provide an in-app admin panel, a separate admin-role system, or automatic changes to the knowledge base; repository write access and branch rules govern who can change the file.
+
+Knowledge is retrieved using RAG; submitting or approving a suggestion does **not** train or fine-tune Gemini. To add an approved record, use this structure:
 
 ```json
 {
@@ -251,7 +256,7 @@ Add a record to `public/knowledge.json`. Keep descriptions factual and include s
 }
 ```
 
-The Worker imports this JSON during its build, so changes to knowledge require redeploying the Worker. The GitHub Pages workflow also packages the public file with the frontend; push the change to `main` to publish the updated site.
+The Worker imports this JSON during its build, so approved changes require redeploying the Worker. The GitHub Pages workflow also packages the public file with the frontend; push the change to `main` to publish the updated site.
 
 The current UI supports Arabic and English, and the backend calls Gemini directly. Adding another UI language or LLM provider is not a configuration-only change: it requires code changes and tests.
 
@@ -270,7 +275,7 @@ When adding functionality, add a focused test alongside the existing test for th
 ## Roadmap
 
 - [ ] Implement scheduled prayer reminders; the current reminder toggle only stores a local preference.
-- [ ] Add admin-approved learning so proposed information cannot affect answers until an administrator reviews and approves it.
+- [ ] Add an in-app knowledge suggestion and admin review panel; suggestions are currently collected and reviewed through public GitHub issues.
 - [ ] Add real screenshots to `docs/images/` after the project owner provides them.
 - [ ] Evaluate additional LLM providers and UI languages with explicit code, safety, and test changes.
 
@@ -288,9 +293,13 @@ No. **This is an AI assistant, not a mufti.** It can make mistakes and should no
 
 The current Worker calls Google Gemini. `GEMINI_MODEL` selects the configured Gemini model; another provider would require backend code changes.
 
-### How do I update app information?
+### How can I suggest app information?
 
-Edit `public/knowledge.json`, verify the facts and sources, then deploy the Worker and publish the frontend as described above.
+Open a [Knowledge suggestion issue](https://github.com/cooolv/Muslim-Bot/issues/new?template=knowledge_suggestion.yml). A maintainer reviews it; opening an issue does not add its contents to answers. If accepted, the maintainer updates the knowledge file and deploys the change.
+
+### Does this train Gemini?
+
+No. Approved information is added to the RAG knowledge base and retrieved as context for answers. Gemini's model weights are not trained or fine-tuned by this workflow.
 
 ### Do prayer reminders work?
 
