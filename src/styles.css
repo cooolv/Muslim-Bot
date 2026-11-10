@@ -141,7 +141,8 @@ a:hover { text-decoration: underline; }
 :root[data-theme="light"] .inline-warning { color: #78551e; }
 .message-list { width: min(800px, calc(100% - 40px)); margin: 0 auto; padding: 38px 0 25px; }
 .message-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 29px; animation: appear .25s ease both; }
-.user-row { flex-direction: row; }
+.app-shell[data-language="ar"] .user-row { direction: rtl; justify-content: flex-start; }
+.app-shell[data-language="en"] .user-row { direction: ltr; justify-content: flex-start; }
 .assistant-avatar { display: grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; margin-top: 3px; color: var(--green-bright); border: 1px solid var(--border-strong); border-radius: 10px; background: var(--green-dark); font-size: 13px; }
 .message-bubble { max-width: min(620px, 90%); padding: 10px 14px; color: var(--text); border: 1px solid var(--border); border-radius: 13px; background: var(--card); font-size: 14px; line-height: 1.9; overflow-wrap: anywhere; }
 .message-bubble p { margin: 0 0 10px; }

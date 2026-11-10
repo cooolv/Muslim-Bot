@@ -358,7 +358,7 @@ function App() {
   );
 
   return (
-    <div className={`app-shell ${menuOpen ? "menu-open" : ""}`} data-message-size={settings.messageSize} data-distinguish-messages={settings.distinguishMessages}>
+    <div className={`app-shell ${menuOpen ? "menu-open" : ""}`} data-language={settings.language} data-message-size={settings.messageSize} data-distinguish-messages={settings.distinguishMessages}>
       {menuOpen && <button aria-label={text("إغلاق القائمة", "Close menu")} className="mobile-backdrop" onClick={() => setMenuOpen(false)} />}
       <aside className="sidebar">
         <div className="brand-row">
