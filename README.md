@@ -25,6 +25,7 @@ Muslims looking for useful apps often have to search across scattered sources. M
 ## Features
 
 - **Knowledge-grounded answers:** The Cloudflare Worker searches the published records in `public/knowledge.json` and gives matching context and source links to Gemini.
+- **Broad app recommendations:** When a user asks generally for a useful Islamic app without naming a category or product, the Worker offers a curated set of apps already in the knowledge base, with source links.
 - **Arabic-aware retrieval:** Search normalizes Arabic letters and diacritics, stems common prefixes and suffixes, and ranks matching knowledge records locally.
 - **Prayer times and city lookup:** Search for a city or allow browser location access, then request prayer times from Aladhan. The page shows the five daily prayers, Hijri date, and next prayer.
 - **Personalized display:** Switch Arabic/English and light/dark themes, choose message text size and accent color, and control whether assistant replies use a distinct background.

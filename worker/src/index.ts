@@ -34,6 +34,36 @@ const maxMessages = 7;
 const maxHistoryCharacters = 6_000;
 const maxQuestionCharacters = 1_500;
 const modelDefault = "gemini-3.5-flash-lite";
+const generalRecommendationTitles = [
+  "أدوات المسلم (Muslim Tools)",
+  "متابعة العبادات",
+  "أذكار",
+  "تطبيق القرآن الكريم (تلاوة)",
+];
+const appCategoryTerms = [
+  "قران", "مصحف", "حفظ", "تلاو", "اذكار", "صلاه", "قبله", "دعاء", "حديث",
+  "تعافي", "حجب", "متصفح", "تواصل", "طفل", "زكاه", "صدقه", "مهمات", "كتب",
+  "مكتبه", "صوت", "صوره", "انترنت", "ملفات",
+];
+
+function isGeneralAppRecommendation(query: string, records: KnowledgeDocument[]): boolean {
+  const normalized = normalizeArabic(query);
+  const asksForRecommendation = /(?:رشح|اقترح|انصحني|recommend|suggest)/i.test(normalized);
+  const asksForApp = /(?:تطبيق|برنامج|app|application)/i.test(normalized);
+  const asksForSpecificCategory = appCategoryTerms.some((term) => normalized.includes(term));
+  const asksAboutNamedApp = records.some((record) =>
+    [record.title, record.appName].some((name) => name && normalized.includes(normalizeArabic(name))),
+  );
+  return asksForRecommendation && asksForApp && !asksForSpecificCategory && !asksAboutNamedApp;
+}
+
+function generalRecommendations(records: KnowledgeDocument[]): KnowledgeDocument[] {
+  const byTitle = new Map(records.map((record) => [record.title, record]));
+  return generalRecommendationTitles.flatMap((title) => {
+    const record = byTitle.get(title);
+    return record ? [record] : [];
+  });
+}
 
 function jsonResponse(
   body: Record<string, unknown>,
@@ -143,7 +173,7 @@ async function generate(
     : latest;
   const queryTerms = queryTokens(searchQuery);
   const normalizedQuery = normalizeArabic(searchQuery).trim();
-  const records = searchKnowledge(searchQuery, knowledgeRecords, knowledgeRecords.length)
+  let records = searchKnowledge(searchQuery, knowledgeRecords, knowledgeRecords.length)
     .filter((record) => {
       if (record.score < 1.2) return false;
       if (record.matchedTerms >= 2) return true;
@@ -153,6 +183,9 @@ async function generate(
       );
     })
     .slice(0, 4);
+  if (isGeneralAppRecommendation(searchQuery, knowledgeRecords)) {
+    records = generalRecommendations(knowledgeRecords).map((record) => ({ ...record, score: 0, matchedTerms: 0 }));
+  }
   const canary = `MA-${crypto.randomUUID().slice(0, 12)}`;
   const system = `${systemPrompt("", canary, request.language)}
 The user may ask general questions or questions about a specific application.

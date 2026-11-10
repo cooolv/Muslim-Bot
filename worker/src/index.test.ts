@@ -107,6 +107,45 @@ describe("Cloudflare chat worker", () => {
     expect(body.sources).toEqual(["https://example.org/qurani"]);
   });
 
+  it("offers source-backed apps for a broad Islamic app recommendation", async () => {
+    const fetchMock = mockGeminiFetch("أنصحك بتطبيق أدوات المسلم، فهو يجمع أدوات نافعة.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language: "ar",
+      messages: [{ role: "user", content: "رشح لي تطبيقًا إسلاميًا مفيدًا" }],
+    }, { origin: "https://site.example" }), makeEnv());
+    const body = await response.json() as { sources: string[] };
+    const upstream = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as {
+      systemInstruction: { parts: Array<{ text: string }> };
+    };
+    const context = upstream.systemInstruction.parts[0].text;
+
+    expect(response.status).toBe(200);
+    expect(context).toContain("أدوات المسلم (Muslim Tools)");
+    expect(context).toContain("متابعة العبادات");
+    expect(context).toContain("أذكار");
+    expect(context).toContain("تطبيق القرآن الكريم (تلاوة)");
+    expect(body.sources).toContain("https://t.me/muslim_appss/599");
+    expect(body.sources).toContain("https://t.me/muslim_appss/77");
+  });
+
+  it("does not replace recommendations for a named app with the general list", async () => {
+    const fetchMock = mockGeminiFetch("التطبيق ما زال قيد التطوير.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language: "ar",
+      messages: [{ role: "user", content: "رشح لي تطبيق حياة المسلم" }],
+    }, { origin: "https://site.example" }), makeEnv());
+    const upstream = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as {
+      systemInstruction: { parts: Array<{ text: string }> };
+    };
+    const context = upstream.systemInstruction.parts[0].text;
+
+    expect(response.status).toBe(200);
+    expect(context).toContain("حياة المسلم");
+    expect(context).not.toContain("أدوات المسلم (Muslim Tools)");
+  });
+
   it("retrieves the offline-availability fact for Muslim Tools", async () => {
     const fetchMock = mockGeminiFetch("لا، التطبيق لا يحتاج إلى إنترنت.");
     vi.stubGlobal("fetch", fetchMock);
