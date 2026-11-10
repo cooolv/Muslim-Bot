@@ -94,6 +94,7 @@ function referenceContext(records: Array<KnowledgeDocument & { score: number }>)
   return records.map((record, index) => {
     const structured = {
       title: record.title,
+      body: record.body,
       appName: record.appName,
       categories: record.categories,
       description: record.description,

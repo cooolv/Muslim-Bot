@@ -107,6 +107,23 @@ describe("Cloudflare chat worker", () => {
     expect(body.sources).toEqual(["https://example.org/qurani"]);
   });
 
+  it("retrieves the offline-availability fact for Muslim Tools", async () => {
+    const fetchMock = mockGeminiFetch("لا، التطبيق لا يحتاج إلى إنترنت.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language: "ar",
+      messages: [{ role: "user", content: "هل تطبيق أدوات المسلم يحتاج إلى إنترنت؟" }],
+    }, { origin: "https://site.example" }), makeEnv());
+    const body = await response.json() as { text: string; sources: string[] };
+    const upstream = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as {
+      systemInstruction: { parts: Array<{ text: string }> };
+    };
+
+    expect(response.status).toBe(200);
+    expect(upstream.systemInstruction.parts[0].text).toContain("لا يحتاج إنترنت");
+    expect(body.sources).toContain("https://t.me/muslim_appss/599");
+  });
+
   it("preserves recent turns for follow-up questions", async () => {
     const fetchMock = mockGeminiFetch("Follow-up response.");
     vi.stubGlobal("fetch", fetchMock);
