@@ -293,7 +293,7 @@ function App() {
               <option value="light">{text("فاتح", "Light")}</option>
             </select>
           </label>
-          <label className="field-group">{text("حجم نص الرسائل", "Message text size")}
+          <label className="field-group">{text("حجم النص في الواجهة", "Interface text size")}
             <select value={settings.messageSize} onChange={(event) => updateSettings({ messageSize: event.target.value as Settings["messageSize"] })}>
               <option value="small">{text("صغير", "Small")}</option>
               <option value="medium">{text("متوسط (افتراضي)", "Medium (default)")}</option>
