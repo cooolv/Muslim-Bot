@@ -755,6 +755,10 @@ function InfoPage({ text, kind }: { isEnglish: boolean; text: (ar: string, en: s
             <strong>{text("تنبيه شرعي", "Religious disclaimer")}</strong>
             <p>{text("المساعد ليس مفتيًا. قد يخطئ الذكاء الاصطناعي، ولا تُعتمد إجاباته كفتوى. للمسائل الشرعية المعقدة أو الشخصية، راجع أهل العلم الثقات.", "This assistant is not a mufti. AI can be wrong, and its answers are not fatwas. For personal or complex religious questions, consult trusted scholars.")}</p>
           </div>
+          <div className="disclaimer-card">
+            <strong>{text("الدعم النفسي", "Wellbeing support")}</strong>
+            <p>{text("يمكن للمساعد تقديم دعم عام وخطوات عملية بسيطة، لكنه ليس مختصًا نفسيًا ولا يشخّص أو يعالج. عند الخطر المباشر، تواصل مع الطوارئ المحلية وشخص تثق به.", "The assistant can offer general support and small practical steps, but it is not a mental-health professional and does not diagnose or treat. If there is immediate danger, contact local emergency services and someone you trust.")}</p>
+          </div>
         </div>
       ) : (
         <div className="info-card privacy-content">
@@ -763,8 +767,13 @@ function InfoPage({ text, kind }: { isEnglish: boolean; text: (ar: string, en: s
           <h2>{text("البيانات التي تغادر جهازك", "Data sent to other services")}</h2>
           <ul>
             <li>{text("يُرسل نص المحادثة إلى Google Gemini لمعالجة الرد. لا تسأل عن معلومات شخصية أو مالية حساسة.", "Conversation text is sent to Google Gemini to generate a response. Do not share sensitive personal or financial information.")}</li>
+            <li>{text("لا تُنشأ ذاكرة منفصلة عن التعافي أو الحالة النفسية، ولا تُستخدم المحادثات لتدريب قاعدة معرفة هذا المشروع. تظل الرسائل ضمن سجل المحادثات المحلي المعتاد حتى تحذفها.", "No separate recovery or wellbeing memory is created, and chats are not used to train this project's knowledge base. Messages remain in the usual local conversation history until you delete them.")}</li>
             <li>{text("طلب مواقيت الصلاة أو البحث عن المدن يرسل البيانات إلى Aladhan وOpenStreetMap عند استخدام تلك الخصائص.", "Prayer-time and city-lookup requests go to Aladhan and OpenStreetMap when you use those features.")}</li>
           </ul>
+          <div className="disclaimer-card">
+            <strong>{text("تنبيه للدعم النفسي", "Wellbeing support notice")}</strong>
+            <p>{text("لخصوصيتك، تجنب مشاركة اسمك أو بيانات تعريفية أو تفاصيل لا ترغب في إرسالها إلى Google Gemini. هذا المساعد ليس خدمة طوارئ أو بديلًا عن مختص.", "For your privacy, avoid sharing your name, identifying details, or information you do not want sent to Google Gemini. This assistant is not an emergency service or a substitute for a professional.")}</p>
+          </div>
           <div className="disclaimer-card">
             <strong>{text("حذف بياناتك", "Delete your data")}</strong>
             <p>{text("استخدم «حذف كل البيانات المحلية» في الإعدادات لإزالة المحادثات والإعدادات المحفوظة من هذا المتصفح.", "Use “Delete all local data” in Settings to remove saved chats and preferences from this browser.")}</p>

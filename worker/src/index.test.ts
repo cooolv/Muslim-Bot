@@ -51,6 +51,39 @@ describe("Cloudflare chat worker", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it.each([
+    ["ar", "أفكر أنتحر"],
+    ["en", "I am planning to hurt myself tonight"],
+  ] as const)("returns immediate human-support guidance for a crisis message (%s)", async (language, message) => {
+    const fetchMock = mockGeminiFetch("Should not run.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language,
+      messages: [{ role: "user", content: message }],
+    }, { origin: "https://site.example" }), makeEnv());
+    const body = await response.json() as { text: string; sources: string[] };
+
+    expect(response.status).toBe(200);
+    expect(body.text).toMatch(language === "ar" ? /الطوارئ المحلية/ : /local emergency services/);
+    expect(body.text).toMatch(language === "ar" ? /شخص تثق به/ : /someone you trust/);
+    expect(body.sources).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("can return crisis guidance without a configured Gemini key", async () => {
+    const fetchMock = mockGeminiFetch("Should not run.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language: "en",
+      messages: [{ role: "user", content: "I am planning to hurt myself tonight" }],
+    }, { origin: "https://site.example" }), makeEnv({ GEMINI_API_KEY: "" }));
+    const body = await response.json() as { text: string };
+
+    expect(response.status).toBe(200);
+    expect(body.text).toContain("local emergency services");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
     ["Arabic", "ar", "كيف أستفيد من الأذكار؟"],
     ["English", "en", "How do I build a reading habit?"],
   ] as const)("answers general %s questions without a strong knowledge match", async (_label, language, question) => {

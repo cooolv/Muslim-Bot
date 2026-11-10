@@ -32,6 +32,7 @@ Muslims looking for useful apps often have to search across scattered sources. M
 - **Local preferences and conversation history:** Conversations, display preferences, selected city, and the reminder toggle are stored in the browser. Display preferences can be restored to their defaults in Settings.
 - **Layered request protections:** The Worker checks origins and request shape and size, applies Cloudflare rate limiting, checks input and generated output, and keeps the Gemini key on the server.
 - **Source links:** Answers can include links to the knowledge records used for retrieval.
+- **Non-clinical wellbeing support:** Offers empathetic, practical support for everyday anxiety and stress, emotional wellbeing, and user-led habit change or recovery from compulsive habits. It does not diagnose, prescribe, or replace a qualified professional.
 - **Maintainer-reviewed knowledge suggestions:** Anyone can propose source-backed information through a public GitHub issue. Suggestions are not used in answers unless a maintainer reviews and adds them to the published knowledge file.
 
 Scheduled prayer reminders are **not implemented**. The current reminder control only saves a local preference; it does not schedule or deliver notifications.
@@ -55,6 +56,8 @@ flowchart LR
 The browser sends the current question and a limited recent conversation history to `/api/chat`; it never calls Gemini directly. The Worker handles origin and request validation, rate limiting, input checks, knowledge retrieval, and output checks. It imports `public/knowledge.json` at build time, selects relevant records with the shared Arabic search helpers, and passes those records to Gemini as reference context.
 
 Cloudflare rate limiting runs at the Worker boundary. Input and output checks run in the Worker using shared project code. These protections reduce risk; they do not guarantee that every unsafe or incorrect response will be prevented.
+
+For possible immediate danger, the Worker returns a fixed response encouraging contact with local emergency services and a trusted person, without calling Gemini. This phrase-based check is limited and can miss emergencies; the app is not an emergency service.
 
 ## Quick Start
 
@@ -208,6 +211,7 @@ Cloudflare and Gemini plans, quotas, and limits can change. Check the [Cloudflar
 - Shared input and output checks screen requests and generated text. Retrieved records are treated as reference data, not instructions.
 - CORS is not authentication. A non-browser client can call a public Worker, and rate limits or provider quotas do not prevent every form of abuse.
 - AI output and automated checks can be wrong or incomplete. No security or content-safety system is absolute.
+- Wellbeing support is non-clinical. The assistant does not diagnose or prescribe, and it should not replace professional or emergency support.
 
 To report a suspected vulnerability, follow [SECURITY.md](SECURITY.md). Avoid posting exploitable details in a public issue.
 
@@ -215,6 +219,7 @@ To report a suspected vulnerability, follow [SECURITY.md](SECURITY.md). Avoid po
 
 - The browser stores conversations, language/theme preferences, the selected city, and the reminder preference in local storage. Use the app's local-data deletion control to clear saved app data from that browser.
 - The current question and a limited recent chat history are sent to the Worker and then to Google Gemini to generate a response. The Gemini key is not sent to the browser.
+- No separate wellbeing notes are collected, and conversations are not added to this project's knowledge base or used to train this project's model. Chat messages remain in the existing browser conversation history until deleted; messages sent for a reply are processed by Google Gemini.
 - The Worker does not store conversation history in an application database. Cloudflare and Google may process request data under their own services and policies; review their current terms before use.
 - City searches send the city query to OpenStreetMap's Nominatim service. Prayer-time requests send coordinates and a calculation method to Aladhan. Browser location is requested only when the user chooses the location feature.
 - The app does not require an account.

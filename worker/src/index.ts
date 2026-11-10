@@ -2,6 +2,7 @@ import knowledgeData from "../../public/knowledge.json";
 import {
   checkInput,
   checkOutput,
+  indicatesImmediateRisk,
   normalizeArabic,
   queryTokens,
   searchKnowledge,
@@ -158,6 +159,14 @@ async function generate(
   knowledgeRecords: KnowledgeDocument[],
 ): Promise<{ text: string; sources: string[] }> {
   const latest = request.messages.at(-1)?.content ?? "";
+  if (indicatesImmediateRisk(latest)) {
+    return {
+      text: request.language === "ar"
+        ? "أنا آسف أنك تمر بهذا. سلامتك أهم شيء الآن. إذا كنت في خطر مباشر أو تخشى أن تؤذي نفسك أو شخصًا آخر، فاتصل بخدمات الطوارئ المحلية أو توجّه إلى أقرب قسم طوارئ، واطلب من شخص تثق به أن يبقى معك الآن. ابتعد عن أي شيء قد تستخدمه للإيذاء إن استطعت فعل ذلك بأمان. إذا لم يكن الخطر وشيكًا، تواصل اليوم مع شخص تثق به أو مختص نفسي. هل أنت في خطر مباشر الآن؟"
+        : "I'm sorry you're going through this. Your safety comes first. If you are in immediate danger or afraid you may hurt yourself or someone else, contact local emergency services or go to the nearest emergency department, and ask someone you trust to stay with you now. Move away from anything you could use to cause harm if you can do so safely. If the danger is not immediate, please contact someone you trust or a mental-health professional today. Are you in immediate danger right now?",
+      sources: [],
+    };
+  }
   const inputCheck = checkInput(latest);
   if (!inputCheck.allowed) {
     return {
@@ -238,9 +247,6 @@ export function createWorker(knowledgeRecords: KnowledgeDocument[] = knowledge) 
     if (request.method !== "POST" || new URL(request.url).pathname !== "/api/chat") {
       return jsonResponse({ error: "not_found" }, 404, origin, allowedOrigin);
     }
-    if (!env.GEMINI_API_KEY) {
-      return jsonResponse({ error: "service_not_configured" }, 503, origin, allowedOrigin);
-    }
     const contentLength = Number(request.headers.get("Content-Length") ?? "0");
     if (contentLength > maxBodyBytes) {
       return jsonResponse({ error: "request_too_large" }, 413, origin, allowedOrigin);
@@ -269,6 +275,10 @@ export function createWorker(knowledgeRecords: KnowledgeDocument[] = knowledge) 
     }
     const chatRequest = validateChatRequest(value);
     if (!chatRequest) return jsonResponse({ error: "invalid_request" }, 400, origin, allowedOrigin);
+    const latest = chatRequest.messages.at(-1)?.content ?? "";
+    if (!env.GEMINI_API_KEY && !indicatesImmediateRisk(latest)) {
+      return jsonResponse({ error: "service_not_configured" }, 503, origin, allowedOrigin);
+    }
 
     try {
       const result = await generate(chatRequest, env, knowledgeRecords);
