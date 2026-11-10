@@ -1,6 +1,6 @@
 export type Language = "ar" | "en";
 export type Theme = "light" | "dark";
-export type MessageSize = "small" | "medium" | "large";
+export type MessageSize = "small" | "medium" | "large" | "extra-large";
 export type AccentColor = "green" | "blue" | "violet" | "amber";
 export type Page = "chat" | "prayer" | "settings" | "about" | "privacy";
 export type Role = "user" | "assistant";
@@ -219,7 +219,7 @@ export function loadSettings(): Settings {
   return {
     language: saved.language === "en" ? "en" : DEFAULT_SETTINGS.language,
     theme: saved.theme === "light" ? "light" : DEFAULT_SETTINGS.theme,
-    messageSize: saved.messageSize === "small" || saved.messageSize === "large"
+    messageSize: saved.messageSize === "small" || saved.messageSize === "large" || saved.messageSize === "extra-large"
       ? saved.messageSize
       : DEFAULT_SETTINGS.messageSize,
     accentColor: saved.accentColor === "blue" || saved.accentColor === "violet" || saved.accentColor === "amber"

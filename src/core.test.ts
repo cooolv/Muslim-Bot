@@ -24,7 +24,7 @@ describe("display preferences", () => {
     localStorage.setItem("muslim-assistant-settings-v1", JSON.stringify({
       language: "en",
       theme: "light",
-      messageSize: "large",
+      messageSize: "extra-large",
       accentColor: "violet",
       distinguishMessages: false,
     }));
@@ -32,13 +32,13 @@ describe("display preferences", () => {
     expect(loadSettings()).toEqual({
       language: "en",
       theme: "light",
-      messageSize: "large",
+      messageSize: "extra-large",
       accentColor: "violet",
       distinguishMessages: false,
     });
 
-    saveSettings({ ...DEFAULT_SETTINGS, messageSize: "small", accentColor: "blue" });
-    expect(loadSettings()).toEqual({ ...DEFAULT_SETTINGS, messageSize: "small", accentColor: "blue" });
+    saveSettings({ ...DEFAULT_SETTINGS, messageSize: "extra-large", accentColor: "blue" });
+    expect(loadSettings()).toEqual({ ...DEFAULT_SETTINGS, messageSize: "extra-large", accentColor: "blue" });
 
     localStorage.setItem("muslim-assistant-settings-v1", JSON.stringify({
       messageSize: "huge",

@@ -298,6 +298,7 @@ function App() {
               <option value="small">{text("صغير", "Small")}</option>
               <option value="medium">{text("متوسط (افتراضي)", "Medium (default)")}</option>
               <option value="large">{text("كبير", "Large")}</option>
+              <option value="extra-large">{text("كبير جدًا", "Extra large")}</option>
             </select>
           </label>
           <fieldset className="accent-picker">
