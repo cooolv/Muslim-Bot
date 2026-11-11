@@ -33,6 +33,7 @@ Muslims looking for useful apps often have to search across scattered sources. M
 - **Layered request protections:** The Worker checks origins and request shape and size, applies Cloudflare rate limiting, checks input and generated output, and keeps the Gemini key on the server.
 - **Source links:** Answers can include links to the knowledge records used for retrieval.
 - **Non-clinical wellbeing support:** Offers empathetic, practical support for everyday anxiety and stress, emotional wellbeing, and user-led habit change or recovery from compulsive habits. It does not diagnose, prescribe, or replace a qualified professional.
+- **Recovery resources:** Recovery-related questions can retrieve the existing *Tariq Al-Naqaa* recovery app and *Tariq Al-Tawbah* worksheets, with source links. Blocking questions can also retrieve listed blocking tools; availability and suitability should be checked with their publishers.
 - **Maintainer-reviewed knowledge suggestions:** Anyone can propose source-backed information through a public GitHub issue. Suggestions are not used in answers unless a maintainer reviews and adds them to the published knowledge file.
 
 Scheduled prayer reminders are **not implemented**. The current reminder control only saves a local preference; it does not schedule or deliver notifications.

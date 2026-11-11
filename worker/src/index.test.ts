@@ -162,6 +162,52 @@ describe("Cloudflare chat worker", () => {
     expect(body.sources).toContain("https://t.me/muslim_appss/77");
   });
 
+  it.each([
+    ["أريد التعافي", "التعافي من العادات القهرية وتقليل التعرض للمحتوى الإباحي خطوة بخطوة."],
+    ["كيف اتخلص من الادمان", "ابدأ بخطوات واقعية للتعافي من الإدمان، ولا تلُم نفسك عند التعثر."],
+  ])("retrieves recovery resources and allows neutral recovery language: %s", async (question, answer) => {
+    const fetchMock = mockGeminiFetch(answer);
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language: "ar",
+      messages: [{ role: "user", content: question }],
+    }, { origin: "https://site.example" }), makeEnv());
+    const body = await response.json() as { text: string; sources: string[] };
+    const upstream = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as {
+      systemInstruction: { parts: Array<{ text: string }> };
+    };
+    const context = upstream.systemInstruction.parts[0].text;
+
+    expect(response.status).toBe(200);
+    expect(body.text).toBe(answer);
+    expect(context).toContain("طريق النقاء (تطبيق التعافي)");
+    expect(context).toContain("سلسلة طريق التوبة (ملفات للطباعة)");
+    expect(body.sources).toContain("https://t.me/muslim_appss/75");
+    expect(body.sources).toContain("https://t.me/muslim_appss/175");
+  });
+
+  it("retrieves content-blocking tools for a recovery-related blocking query", async () => {
+    const fetchMock = mockGeminiFetch("يمكنك تجربة أدوات الحجب المذكورة مع طلب مساعدة موثوقة.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language: "ar",
+      messages: [{ role: "user", content: "كيف احجب المواقع الإباحية؟" }],
+    }, { origin: "https://site.example" }), makeEnv());
+    const body = await response.json() as { sources: string[] };
+    const upstream = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as {
+      systemInstruction: { parts: Array<{ text: string }> };
+    };
+    const context = upstream.systemInstruction.parts[0].text;
+
+    expect(response.status).toBe(200);
+    expect(context).toContain("ubhind");
+    expect(context).toContain("درع الحماية");
+    expect(context).toContain("جوجل سيرش المسلم");
+    expect(body.sources).toContain("https://t.me/muslim_appss/640");
+    expect(body.sources).toContain("https://t.me/muslim_appss/56");
+    expect(body.sources).toContain("https://t.me/muslim_appss/43");
+  });
+
   it("does not replace recommendations for a named app with the general list", async () => {
     const fetchMock = mockGeminiFetch("التطبيق ما زال قيد التطوير.");
     vi.stubGlobal("fetch", fetchMock);

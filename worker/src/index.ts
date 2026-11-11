@@ -46,6 +46,36 @@ const appCategoryTerms = [
   "تعافي", "حجب", "متصفح", "تواصل", "طفل", "زكاه", "صدقه", "مهمات", "كتب",
   "مكتبه", "صوت", "صوره", "انترنت", "ملفات",
 ];
+const recoveryQueryPattern = /(?:تعافي|ادمان|اقلاع|عاده سريه|اباحي|بورن|سلوك قهري|طريق النقاء|طريق التوبه|recovery|addict|compulsive habit|pornograph)/i;
+const blockingQueryPattern = /(?:حجب|حظر|منع|فلتر|block|filter|restrict)/i;
+const recoveryResourceTitles = [
+  "طريق النقاء (تطبيق التعافي)",
+  "سلسلة طريق التوبة (ملفات للطباعة)",
+];
+const blockingResourceTitles = [
+  "درع الحماية (درع التعافي / PureShield)",
+  "ubhind (تطبيق حجب عند الشهوة المفرطة)",
+  "جوجل سيرش المسلم (Google Search Muslim)",
+];
+
+function recoveryResources(
+  query: string,
+  records: KnowledgeDocument[],
+  matches: Array<KnowledgeDocument & { score: number; matchedTerms: number }>,
+): Array<KnowledgeDocument & { score: number; matchedTerms: number }> {
+  const isBlockingQuery = blockingQueryPattern.test(normalizeArabic(query));
+  const titles = isBlockingQuery ? blockingResourceTitles : recoveryResourceTitles;
+  const byTitle = new Map(records.map((record) => [record.title, record]));
+  const fallback = titles.flatMap((title) => {
+    const record = byTitle.get(title);
+    return record ? [{ ...record, score: 0, matchedTerms: 0 }] : [];
+  });
+  const unique = new Map<string, KnowledgeDocument & { score: number; matchedTerms: number }>();
+  for (const record of [...fallback, ...matches]) {
+    if (!unique.has(record.title)) unique.set(record.title, record);
+  }
+  return [...unique.values()].slice(0, 4);
+}
 
 function isGeneralAppRecommendation(query: string, records: KnowledgeDocument[]): boolean {
   const normalized = normalizeArabic(query);
@@ -182,7 +212,8 @@ async function generate(
     : latest;
   const queryTerms = queryTokens(searchQuery);
   const normalizedQuery = normalizeArabic(searchQuery).trim();
-  let records = searchKnowledge(searchQuery, knowledgeRecords, knowledgeRecords.length)
+  const searchResults = searchKnowledge(searchQuery, knowledgeRecords, knowledgeRecords.length);
+  let records = searchResults
     .filter((record) => {
       if (record.score < 1.2) return false;
       if (record.matchedTerms >= 2) return true;
@@ -192,6 +223,13 @@ async function generate(
       );
     })
     .slice(0, 4);
+  if (recoveryQueryPattern.test(normalizeArabic(searchQuery))) {
+    records = recoveryResources(
+      searchQuery,
+      knowledgeRecords,
+      searchResults.filter((record) => record.score >= 1.2).slice(0, 4),
+    );
+  }
   if (isGeneralAppRecommendation(searchQuery, knowledgeRecords)) {
     records = generalRecommendations(knowledgeRecords).map((record) => ({ ...record, score: 0, matchedTerms: 0 }));
   }

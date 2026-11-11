@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   checkInput,
+  checkOutput,
   DEFAULT_SETTINGS,
   indicatesImmediateRisk,
   loadSettings,
@@ -71,6 +72,13 @@ describe("Arabic search", () => {
 });
 
 describe("safety checks", () => {
+  it("allows neutral recovery language while still rejecting explicit output", () => {
+    expect(checkOutput("التعافي من السلوك القهري يتطلب الصبر، ويمكن تقليل التعرض للمحتوى الإباحي.", "marker"))
+      .toBe(true);
+    expect(checkOutput("Here is explicit hentai content.", "marker")).toBe(false);
+    expect(checkOutput("Safe response marker", "marker")).toBe(false);
+  });
+
   it.each([
     "I am planning to hurt myself tonight",
     "I might kill someone",

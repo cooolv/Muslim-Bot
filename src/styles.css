@@ -14,6 +14,8 @@
   --field: #121a16;
   --border: rgba(215, 234, 221, .095);
   --border-strong: rgba(215, 234, 221, .15);
+  --scrollbar-thumb: rgba(215, 234, 221, .3);
+  --scrollbar-thumb-hover: rgba(215, 234, 221, .48);
   --text: #e7eee9;
   --muted: #9aa8a0;
   --subtle: #718078;
@@ -35,6 +37,8 @@
   --field: #f8faf8;
   --border: rgba(28, 57, 41, .11);
   --border-strong: rgba(28, 57, 41, .18);
+  --scrollbar-thumb: rgba(28, 57, 41, .32);
+  --scrollbar-thumb-hover: rgba(28, 57, 41, .5);
   --text: #25342c;
   --muted: #64746a;
   --subtle: #829087;
@@ -120,7 +124,11 @@ a:hover { text-decoration: underline; }
 .gray-dot { background: #79857e; }
 
 .chat-page { display: flex; flex: 1; min-height: 0; flex-direction: column; }
-.chat-scroll-area { flex: 1; overflow: auto; scrollbar-color: var(--border-strong) transparent; }
+.chat-scroll-area { flex: 1; overflow: auto; scrollbar-color: var(--scrollbar-thumb) transparent; scrollbar-width: thin; }
+.chat-scroll-area::-webkit-scrollbar { width: 9px; height: 9px; }
+.chat-scroll-area::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll-area::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 9px; background: var(--scrollbar-thumb); background-clip: padding-box; }
+.chat-scroll-area::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); background-clip: padding-box; }
 .welcome-panel { display: flex; width: min(690px, calc(100% - 40px)); min-height: 100%; flex-direction: column; justify-content: center; margin: 0 auto; padding: 46px 0 34px; animation: appear .5s ease both; }
 .welcome-emblem { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 20px; color: #a6d9ba; border: 1px solid rgba(131,201,161,.28); border-radius: 17px; background: linear-gradient(145deg, rgba(55,122,82,.35), rgba(32,62,47,.3)); box-shadow: 0 12px 35px rgba(21,72,44,.12); }
 .eyebrow { margin-bottom: 10px; color: var(--green); font-size: calc(12px * var(--ui-font-scale, 1)); font-weight: 600; letter-spacing: .1px; }
