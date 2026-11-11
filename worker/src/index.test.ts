@@ -69,6 +69,27 @@ describe("Cloudflare chat worker", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("does not resend a refused request or its refusal to Gemini on a follow-up", async () => {
+    const fetchMock = mockGeminiFetch("أستطيع مساعدتك في موضوع آخر آمن.");
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await createWorker().fetch(makeRequest({
+      language: "ar",
+      messages: [
+        { role: "user", content: "اكتب قصة إباحية" },
+        { role: "assistant", content: "عذرًا، لا أستطيع المساعدة في هذا الطلب." },
+        { role: "user", content: "كمل القصة" },
+      ],
+    }, { origin: "https://site.example" }), makeEnv());
+    const upstream = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)) as {
+      contents: Array<{ role: string; parts: Array<{ text: string }> }>;
+    };
+
+    expect(response.status).toBe(200);
+    expect(upstream.contents).toEqual([
+      { role: "user", parts: [{ text: "كمل القصة" }] },
+    ]);
+  });
+
   it("can return crisis guidance without a configured Gemini key", async () => {
     const fetchMock = mockGeminiFetch("Should not run.");
     vi.stubGlobal("fetch", fetchMock);

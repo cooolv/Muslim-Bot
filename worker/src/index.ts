@@ -207,8 +207,21 @@ async function generate(
     };
   }
 
+  const contextMessages: ChatMessage[] = [];
+  const priorMessages = request.messages.slice(0, -1);
+  for (let index = 0; index < priorMessages.length; index += 1) {
+    const message = priorMessages[index];
+    if (message.role === "user" && !checkInput(message.content).allowed) {
+      contextMessages.length = 0;
+      if (priorMessages[index + 1]?.role === "assistant") index += 1;
+      continue;
+    }
+    contextMessages.push(message);
+  }
+  const messages = [...contextMessages, request.messages.at(-1)!];
+
   const searchQuery = latest.length < 24
-    ? `${request.messages.slice(0, -1).filter((message) => message.role === "user").at(-1)?.content ?? ""} ${latest}`
+    ? `${messages.slice(0, -1).filter((message) => message.role === "user").at(-1)?.content ?? ""} ${latest}`
     : latest;
   const queryTerms = queryTokens(searchQuery);
   const normalizedQuery = normalizeArabic(searchQuery).trim();
@@ -253,7 +266,7 @@ Retrieved reference records:\n${referenceContext(records)}`;
       },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
-        contents: request.messages.map((message) => ({
+        contents: messages.map((message) => ({
           role: message.role === "assistant" ? "model" : "user",
           parts: [{ text: message.content }],
         })),
