@@ -94,7 +94,11 @@ a:hover { text-decoration: underline; }
 .sidebar-section-heading { display: flex; align-items: center; justify-content: space-between; padding: 24px 10px 8px; color: var(--subtle); font-size: calc(11px * var(--ui-font-scale, 1)); font-weight: 600; }
 .tiny-button { display: grid; place-items: center; width: 24px; height: 24px; color: var(--subtle); border: 0; border-radius: 6px; background: transparent; }
 .tiny-button:hover { color: var(--text); background: var(--card); }
-.conversation-list { flex: 1; min-height: 20px; overflow: auto; }
+.conversation-list { flex: 1; min-height: 20px; overflow: auto; scrollbar-color: var(--scrollbar-thumb) transparent; scrollbar-width: thin; }
+.conversation-list::-webkit-scrollbar { width: 9px; height: 9px; }
+.conversation-list::-webkit-scrollbar-track { background: transparent; }
+.conversation-list::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 9px; background: var(--scrollbar-thumb); background-clip: padding-box; }
+.conversation-list::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); background-clip: padding-box; }
 .conversation-row { display: flex; align-items: center; min-height: 37px; border-radius: 8px; }
 .conversation-row:hover, .conversation-row.selected { background: var(--card-soft); }
 .conversation-row > button:first-child { flex: 1; overflow: hidden; padding: 8px 10px; color: var(--muted); border: 0; background: transparent; text-align: start; text-overflow: ellipsis; white-space: nowrap; font-size: calc(12px * var(--ui-font-scale, 1)); }
